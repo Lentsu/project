@@ -26,6 +26,15 @@ typedef struct _Word {
 
 /**
  *  Handle structure to hold command label and arguments!!!
+ *
+ *  \param _data is a tokenized string
+ *	
+ *	\param label is the label character of the command
+ *
+ *	\param words is a linked list of words pointing to \param _data
+ *
+ *	\param next_word points to the next word in the linked list
+ *
 **/
 typedef struct _CMD_Handle {
 
@@ -69,8 +78,56 @@ typedef struct _Meeting {
 	// Day represented as an 8 bit unsigned integer value
 	uint8_t hour;
 
+	// Next meeting
+	struct _Meeting* next;
+
 } meeting;
 
+// Function to read a new meeting from a linked string
+static meeting* meeting_read(word_t*);
 
+// Function to free a meeting
+static void meeting_free(meeting*);
+
+/**
+ * Structure to represent a schedule!!!
+ * 
+ * 	\param meetings holds a linked list of meetings!
+ *
+ * 	\param next_meeting points to the list
+ *
+**/
+typedef struct _Schedule {
+
+	// Meetings data as a linked list
+	meeting* meetings;
+	// Next meeting pointer
+	meeting* next_meeting;
+
+} schedule;
+
+// Function to add a meeting to the schedule
+flag schedule_add(schedule*, cmd_h*);
+
+// Function to delete a meeting from the schedule
+flag schedule_del(schedule*, cmd_h*);
+
+// Function to print the meetings into a stream
+void schedule_print(FILE*, schedule*);
+
+// Function to list the meetings into stdout
+flag schedule_list(schedule*, cmd_h*);
+
+// Function to write the schedule into a file
+flag schedule_write(schedule*, cmd_h*);
+
+// Function to write the schedule into a file
+flag schedule_load(schedule*, cmd_h*);
+
+// Function to free the memory used by schedule
+void schedule_free(schedule*);
+
+// Function to initialize schedule
+void schedule_init(schedule*);
 
 #endif //! _PROJECT_H_
