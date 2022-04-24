@@ -289,7 +289,9 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 		if (s->next_meeting->next->month == new->month
 				&& s->next_meeting->next->day == new->day
 				&& s->next_meeting->next->hour == new->hour) {
-			fprintf(stderr, "add: time already reserved.\n");
+			fprintf(stderr, "add: time (%02hhu.%02hhu at %02hhu) "
+				"already reserved.\n", new->day, new->month, new->hour);
+
 			meeting_free(new);
 			return 0;
 		}
@@ -405,7 +407,8 @@ flag schedule_del(schedule* s, cmd_h* h) {
 
 	// If nothing is deleted
 	if (!deleted)
-		fprintf(stderr, "delete: no meeting at given time.\n");
+		fprintf(stderr, "delete: time (%02hhu.%02hhu at %02hhu) " 
+			"is not reserved.\n", del_day, del_mon, del_hour);
 
 	return deleted;
 }
