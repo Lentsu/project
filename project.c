@@ -492,10 +492,8 @@ flag schedule_load(schedule* s, cmd_h* h) {
 	/**
 	 *  1. OPEN FILE (close at the end)
 	 *  2. Free and reinitialize the schedule
-	 *  3. Read line:
-	 *    - Tokenize the string in each line
-	 *    - Use strtok to read words
-	 *  4. Send the words to meeting_read
+	 *  3. Read line and sscanf it for values
+	 *  4. Read the values into a meeting 
 	 *  5. Add the read meeting to the schedule
 	 *  6. Repeat until EOF
 	**/
