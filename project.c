@@ -261,8 +261,7 @@ flag schedule_add(schedule* s, cmd_h* h) {
 flag schedule_add_meeting(schedule* s, meeting* new) {
 	
 	//	TODO: MAKE THE ADDING ORGANIZED!!!
-
-	// Put the new meeting at the end of the linked list
+	
 	s->next_meeting = s->meetings;
 	while(s->next_meeting->next) {
 
@@ -270,14 +269,59 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 		if (s->next_meeting->next->month == new->month
 				&& s->next_meeting->next->day == new->day
 				&& s->next_meeting->next->hour == new->hour) {
-			fprintf(stderr, "schedule_add: time already reserved.\n");
+			fprintf(stderr, "schedule_add_meeting: time already reserved.\n");
+			meeting_free(new);
+			return 0;
+		}
+
+		// Check that the read date data is realistic
+		if (!(new->month > 0 && new->month < 13)
+				|| !(new->day > 0 && new->day < 32)
+				|| !(new->hour < 24)) {
+			fprintf(stderr, "schedule_add_meeting: scanned time isn't realistic.\n");
 			meeting_free(new);
 			return 0;
 		}
 		
 		s->next_meeting = s->next_meeting->next;
 	}
-	s->next_meeting->next = new;
+
+	// -> NO DUPLICATES!
+	
+	// Reset the next_meeting and make a temporary to hold the old value
+	meeting* old_next = s->meetings;	// Points to the null member by default
+	s->next_meeting = s->meetings->next;
+
+	// Go through meetings as long as the new meeting has smaller month variable
+	while (s->next_meeting && s->next_meeting->month < new->month) {
+		old_next = s->next_meeting;
+		s->next_meeting = s->next_meeting->next;
+	}
+	
+	// If the meetings have the same month variable
+	if (s->next_meeting && new->month == s->next_meeting->month) {
+
+		// Go through meetings as long as the new meeting has smaller day variable
+		while (s->next_meeting && s->next_meeting->day < new->day) {
+			old_next = s->next_meeting;
+			s->next_meeting = s->next_meeting->next;
+		}
+		// If the meetings have the same day variable
+		if (s->next_meeting && new->day == s->next_meeting->day) {
+
+			// Go through meetings as long as the new meeting has smaller hour variable
+			while (s->next_meeting && s->next_meeting->hour < new->hour) {
+				old_next = s->next_meeting;
+				s->next_meeting = s->next_meeting->next;
+			}
+		}
+	}
+	// Put the new meeting in between old_next and next_meeting
+	old_next->next = new;
+	new->next = s->next_meeting;
+
+	// Reset the pointer
+	s->next_meeting = s->meetings;
 
 	// Return 1 to indicate success
 	return 1;
@@ -365,7 +409,7 @@ void schedule_print(FILE* stream, schedule* s) {
 	s->next_meeting = s->meetings->next;
 	while(s->next_meeting) {
 		// Print the meeting
-		fprintf (stream, "%s %hhu.%hhu at %hhu\n", 
+		fprintf (stream, "%s %02hhu.%02hhu at %02hhu\n", 
 		  s->next_meeting->description,
 		  s->next_meeting->day,
 		  s->next_meeting->month,
