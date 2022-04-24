@@ -78,7 +78,7 @@ int main() {
 				break;
 		}
 
-		// Free the handle
+		// Free the command handle
 		free_h(&handle);
 
 		// If SUCCESS flag is set, print
@@ -101,7 +101,7 @@ int read_h(cmd_h* h, const char* str) {
 
 	// Duplicate the string into the handle
 	// h->_data = strdup(str); // Oh... right
-  size_t len = strlen(str);
+	size_t len = strlen(str);
 	h->_data = malloc((len+1)*sizeof(char));
 	strcpy(h->_data, str);
 
@@ -187,16 +187,13 @@ void free_h(cmd_h* h) {
 // Auxillary to read a meeting
 static meeting* meeting_read(word_t* w) {
 
-	/** Check that there is the right amount of words
-	**/
-	//word_t* extra_w = w->next->next->next->next;	// Shouldn't exist
-
+	// Check that there are 4 words, no less, no more
 	if (!w || !w->next || !w->next->next || !w->next->next->next || w->next->next->next->next) {
 		fprintf(stderr, "read_meeting: bad number of words.\n");
 		return NULL;
 	}
 	
-	/** Descriptive words
+	/** words
 	 * 	w FOR DESCRIPTION
 	 *	w->next FOR MONTH
 	 *	w->next->next FOR DAY
@@ -208,7 +205,7 @@ static meeting* meeting_read(word_t* w) {
 	word_t* day_w = w->next->next;
 	word_t* hour_w = w->next->next->next;
 
-	// The returnable
+	// Allocate memory for the meeting
 	meeting* ret = (meeting*)malloc(sizeof(meeting));
 	memset(ret, 0, sizeof(meeting));
 
@@ -217,14 +214,17 @@ static meeting* meeting_read(word_t* w) {
 	ret->description = (char*)malloc((desc_len+1)*sizeof(char));
 	strcpy(ret->description, desc_w->word);
 
-	// Read the month using sscanf magic
-	sscanf(mon_w->word, "%" SCNu8, &ret->month);
-	
-	// Read the day the same way
-	sscanf(day_w->word, "%" SCNu8, &ret->day);
-	
-	// Read the hour the same way
-	sscanf(hour_w->word, "%" SCNu8, &ret->hour);
+	// Read the time using sscanf magic
+	if(!sscanf(mon_w->word, "%" SCNu8, &ret->month)
+	  || !sscanf(day_w->word, "%" SCNu8, &ret->day)
+	  || !sscanf(hour_w->word, "%" SCNu8, &ret->hour)) {
+
+	  // If there's an error, free the newly allocated space and return NULL
+	  fprintf(stderr, "meeting_read: unscannable arguments.\n");
+	  free(ret->description);
+	  free(ret);
+	  return NULL;
+	}
 
 	return ret;
 }
@@ -252,14 +252,31 @@ flag schedule_add(schedule* s, cmd_h* h) {
 	if (!new){
 		return 0;
 	}
-		
+
+	// Add the newly created meeting to the schedule
+	return schedule_add_meeting(s, new);
+
+}
+
+flag schedule_add_meeting(schedule* s, meeting* new) {
+	
 	//	TODO: MAKE THE ADDING ORGANIZED!!!
 
 	// Put the new meeting at the end of the linked list
 	s->next_meeting = s->meetings;
-	while(s->next_meeting->next)
-		s->next_meeting = s->next_meeting->next;
+	while(s->next_meeting->next) {
 
+		// Check that there isn't another meeting in the same time window
+		if (s->next_meeting->next->month == new->month
+				&& s->next_meeting->next->day == new->day
+				&& s->next_meeting->next->hour == new->hour) {
+			fprintf(stderr, "schedule_add: time already reserved.\n");
+			meeting_free(new);
+			return 0;
+		}
+		
+		s->next_meeting = s->next_meeting->next;
+	}
 	s->next_meeting->next = new;
 
 	// Return 1 to indicate success
@@ -390,7 +407,7 @@ flag schedule_write(schedule* s, cmd_h* h) {
 	h->next_word = h->words;
 
 	if (arg_count != 1) {
-		fprintf(stderr, "schedule_del: bad number of arguments.\n");
+		fprintf(stderr, "schedule_write: bad number of arguments.\n");
 		return 0;
 	}
 
@@ -416,8 +433,48 @@ flag schedule_write(schedule* s, cmd_h* h) {
 }
 
 flag schedule_load(schedule* s, cmd_h* h) {
+
+	/** TODO:
+	 *  0?: Free and reinitialize the schedule???
+	 *	1. OPEN FILE (close at the end)
+	 *	2. Read line:
+	 *		- Tokenize the string in each line
+	 *		- Use strtok to read words
+	 *  3. Send the words to meeting_read
+	 *  4. Add the read meeting to the schedule
+	 *  5. Repeat until EOF
+	**/
+	
+	// Count the arguments after label
+	size_t arg_count = 0;
+	h->next_word = h->words->next;
+	while (h->next_word) {
+		++arg_count;
+		h->next_word = h->next_word->next;
+	}
+
+	// Reset the next_word
+	h->next_word = h->words;
+
+	if (arg_count != 1) {
+		fprintf(stderr, "schedule_load: bad number of arguments.\n");
+		return 0;
+	}
+
+	// Open the file
+	const char* filename = h->words->next->word;
+
+	// Open the file for reading purposes
+	FILE* file = fopen(filename, "r");
+
+	// TODO: DO STUFF HERE !!
+	
+
+	
+	// Close the file
+	fclose(file);
+
 	(void)s;
-	(void)h;
 	return 1;
 }
 
@@ -432,7 +489,9 @@ void schedule_free(schedule* s) {
 }
 
 void schedule_init(schedule* s) {
+	// Reserve space for a list head that doesn't contain a value
 	s->meetings = (meeting*)malloc(sizeof(meeting));
 	s->next_meeting = s->meetings;
+	// Set the memory to avoid accessing it uninitialized
 	memset(s->next_meeting, 0, sizeof(meeting));
 }

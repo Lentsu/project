@@ -7,7 +7,7 @@ project: $(SRC_FILES)
 	gcc $(CFLAGS) $(SRC_FILES) -lm -o main.out
 
 clean:
-	rm -f main.out
+	rm -f main.out schedule 
 
 run: project
 	# Running our main function from file project.c

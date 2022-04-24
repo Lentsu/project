@@ -106,7 +106,8 @@ typedef struct _Schedule {
 
 } schedule;
 
-// Function to add a meeting to the schedule
+// Functions to add a meeting to the schedule
+flag schedule_add_meeting(schedule*, meeting*);
 flag schedule_add(schedule*, cmd_h*);
 
 // Function to delete a meeting from the schedule
