@@ -260,8 +260,6 @@ flag schedule_add(schedule* s, cmd_h* h) {
 
 flag schedule_add_meeting(schedule* s, meeting* new) {
 	
-	//	TODO: MAKE THE ADDING ORGANIZED!!!
-	
 	s->next_meeting = s->meetings;
 	while(s->next_meeting->next) {
 
@@ -274,19 +272,16 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 			return 0;
 		}
 
-		// Check that the read date data is realistic
-		if (!(new->month > 0 && new->month < 13)
-				|| !(new->day > 0 && new->day < 32)
-				|| !(new->hour < 24)) {
-			fprintf(stderr, "schedule_add_meeting: scanned time isn't realistic.\n");
-			meeting_free(new);
-			return 0;
-		}
-		
 		s->next_meeting = s->next_meeting->next;
 	}
 
 	// -> NO DUPLICATES!
+	
+	// Check that the read date data is realistic
+	if (!(new->month > 0 && new->month < 13)
+			|| !(new->day > 0 && new->day < 32) || !(new->hour < 24)) { fprintf(stderr, "schedule_add_meeting: scanned time isn't realistic.\n"); meeting_free(new);
+		return 0;
+	}
 	
 	// Reset the next_meeting and make a temporary to hold the old value
 	meeting* old_next = s->meetings;	// Points to the null member by default
