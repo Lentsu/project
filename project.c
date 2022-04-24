@@ -189,7 +189,7 @@ static meeting* meeting_read(word_t* w) {
 
 	// Check that there are 4 words, no less, no more
 	if (!w || !w->next || !w->next->next || !w->next->next->next || w->next->next->next->next) {
-		fprintf(stderr, "meeting_read: wrong number of arguments.\n");
+		fprintf(stderr, "add: wrong number of arguments.\n");
 		return NULL;
 	}
 	
@@ -220,7 +220,7 @@ static meeting* meeting_read(word_t* w) {
 	  || !sscanf(hour_w->word, "%" SCNu8, &ret->hour)) {
 
 	  // If there's an error, free the newly allocated space and return NULL
-	  fprintf(stderr, "meeting_read: unscannable arguments.\n");
+	  fprintf(stderr, "add: unscannable arguments.\n");
 	  free(ret->description);
 	  free(ret);
 	  return NULL;
