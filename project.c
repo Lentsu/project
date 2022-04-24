@@ -189,7 +189,7 @@ static meeting* meeting_read(word_t* w) {
 
 	// Check that there are 4 words, no less, no more
 	if (!w || !w->next || !w->next->next || !w->next->next->next || w->next->next->next->next) {
-		fprintf(stderr, "meeting_read: wrong number of words.\n");
+		fprintf(stderr, "meeting_read: wrong number of arguments.\n");
 		return NULL;
 	}
 	
@@ -235,6 +235,28 @@ static void meeting_free(meeting* m) {
 	free(m->description);
 	// Free the other members 
 	free(m);
+}
+
+// Compare meetings
+static flag meeting_is_later(meeting* a, meeting* b) {
+	// If month is bigger
+	if (a->month > b->month) {
+		return 1;
+	} else if (a->month < b->month) {
+		return 0;
+	}	else {	// They are the same
+		// If day is bigger
+		if (a->day > b->day) {
+			return 1;
+		} else if (a->day < b->day) {
+			return 0;
+		} else {	// They are the same
+			if (a->hour > b->hour)
+				return 1;
+			else
+				return 0;
+		}
+	}
 }
 
 flag schedule_add(schedule* s, cmd_h* h) {
@@ -288,29 +310,11 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 	s->next_meeting = s->meetings->next;
 
 	// Go through meetings as long as the new meeting has smaller month variable
-	while (s->next_meeting && s->next_meeting->month < new->month) {
+	while (s->next_meeting && meeting_is_later(new, s->next_meeting)) {
 		old_next = s->next_meeting;
 		s->next_meeting = s->next_meeting->next;
 	}
 	
-	// If the meetings have the same month variable
-	if (s->next_meeting && new->month == s->next_meeting->month) {
-
-		// Go through meetings as long as the new meeting has smaller day variable
-		while (s->next_meeting && s->next_meeting->day < new->day) {
-			old_next = s->next_meeting;
-			s->next_meeting = s->next_meeting->next;
-		}
-		// If the meetings have the same day variable
-		if (s->next_meeting && new->day == s->next_meeting->day) {
-
-			// Go through meetings as long as the new meeting has smaller hour variable
-			while (s->next_meeting && s->next_meeting->hour < new->hour) {
-				old_next = s->next_meeting;
-				s->next_meeting = s->next_meeting->next;
-			}
-		}
-	}
 	// Put the new meeting in between old_next and next_meeting
 	old_next->next = new;
 	new->next = s->next_meeting;
@@ -473,15 +477,15 @@ flag schedule_write(schedule* s, cmd_h* h) {
 
 flag schedule_load(schedule* s, cmd_h* h) {
 
-	/** TODO:
-	 *  0?: Free and reinitialize the schedule???
-	 *	1. OPEN FILE (close at the end)
-	 *	2. Read line:
-	 *		- Tokenize the string in each line
-	 *		- Use strtok to read words
-	 *  3. Send the words to meeting_read
-	 *  4. Add the read meeting to the schedule
-	 *  5. Repeat until EOF
+	/**
+	 *  1. OPEN FILE (close at the end)
+	 *  2. Free and reinitialize the schedule
+	 *  3. Read line:
+	 *    - Tokenize the string in each line
+	 *    - Use strtok to read words
+	 *  4. Send the words to meeting_read
+	 *  5. Add the read meeting to the schedule
+	 *  6. Repeat until EOF
 	**/
 	
 	// Count the arguments after label
@@ -506,14 +510,55 @@ flag schedule_load(schedule* s, cmd_h* h) {
 	// Open the file for reading purposes
 	FILE* file = fopen(filename, "r");
 
-	// TODO: DO STUFF HERE !!
-	
+	// Check that the file stream is valid
+	if (!file) {
+		fprintf(stderr, "load: cannot open file '%s'.\n", filename);
+		return 0;
+	}
 
+	// Free the schedule and re-initialize it
+	schedule_free(s);
+	schedule_init(s);
+
+	// Buffer to read a string of meeting data into
+	char line_buf[1024];
+	char* line_ptr;	// Read state holder
+
+	// Until reading a line fails
+	while ((line_ptr = fgets(line_buf, 1024, file))) {
+
+		// Read the values using sscanf
+		char desc_buf[1024];
+		uint8_t month, day, hour;
+		size_t read = sscanf(line_buf, "%s %hhu.%hhu at %hhu", desc_buf, &day, &month, &hour);
+
+		// Check that 4 values were read
+		if (read < 4) {
+			fprintf(stderr, "load: bad read.\n");
+			continue;
+		}
+
+		// Allocate space for a meeting object
+		meeting* new = (meeting*)malloc(sizeof(meeting));
+		memset(new, 0, sizeof(meeting));
+
+		// Allocate space for the description and copy it from the buffer
+		size_t desc_len = strlen(desc_buf);
+		new->description = (char*)malloc((desc_len+1)*sizeof(char));
+		strcpy(new->description, desc_buf);
+
+		// Set the other members
+		new->month = month;
+		new->day = day;
+		new->hour = hour;
+
+		// Add the meeting to the schedule
+		schedule_add_meeting(s, new);
+	}
 	
 	// Close the file
 	fclose(file);
 
-	(void)s;
 	return 1;
 }
 
@@ -534,3 +579,4 @@ void schedule_init(schedule* s) {
 	// Set the memory to avoid accessing it uninitialized
 	memset(s->next_meeting, 0, sizeof(meeting));
 }
+

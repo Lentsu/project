@@ -89,6 +89,9 @@ static meeting* meeting_read(word_t*);
 // Function to free a meeting
 static void meeting_free(meeting*);
 
+// Function to compare meetings
+static flag meeting_is_later(meeting*, meeting*);
+
 /**
  * Structure to represent a schedule!!!
  * 
