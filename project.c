@@ -189,7 +189,7 @@ static meeting* meeting_read(word_t* w) {
 
 	// Check that there are 4 words, no less, no more
 	if (!w || !w->next || !w->next->next || !w->next->next->next || w->next->next->next->next) {
-		fprintf(stderr, "read_meeting: bad number of words.\n");
+		fprintf(stderr, "meeting_read: wrong number of words.\n");
 		return NULL;
 	}
 	
@@ -267,7 +267,7 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 		if (s->next_meeting->next->month == new->month
 				&& s->next_meeting->next->day == new->day
 				&& s->next_meeting->next->hour == new->hour) {
-			fprintf(stderr, "schedule_add_meeting: time already reserved.\n");
+			fprintf(stderr, "add: time already reserved.\n");
 			meeting_free(new);
 			return 0;
 		}
@@ -279,7 +279,7 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 	
 	// Check that the read date data is realistic
 	if (!(new->month > 0 && new->month < 13)
-			|| !(new->day > 0 && new->day < 32) || !(new->hour < 24)) { fprintf(stderr, "schedule_add_meeting: scanned time isn't realistic.\n"); meeting_free(new);
+			|| !(new->day > 0 && new->day < 32) || !(new->hour < 24)) { fprintf(stderr, "add: scanned time isn't realistic.\n"); meeting_free(new);
 		return 0;
 	}
 	
@@ -337,7 +337,7 @@ flag schedule_del(schedule* s, cmd_h* h) {
 
 	// If not 3
 	if (arg_count != 3) {
-		fprintf(stderr, "schedule_del: bad number of arguments.\n");
+		fprintf(stderr, "delete: wrong number of arguments.\n");
 		return 0;
 	}
 	
@@ -354,7 +354,7 @@ flag schedule_del(schedule* s, cmd_h* h) {
 	if (!sscanf(mon_w->word, "%" SCNu8, &del_mon)
 		|| !sscanf(day_w->word, "%" SCNu8, &del_day)
 		|| !sscanf(hour_w->word, "%" SCNu8, &del_hour)) {
-		fprintf(stderr, "schedule_del: unscannable arguments.\n");
+		fprintf(stderr, "delete: unscannable arguments.\n");
 		return 0;
 	}
 
@@ -392,7 +392,7 @@ flag schedule_del(schedule* s, cmd_h* h) {
 
 	// If nothing is deleted
 	if (!deleted)
-		fprintf(stderr, "schedule_del: no meeting at given time.\n");
+		fprintf(stderr, "delete: no meeting at given time.\n");
 
 	return deleted;
 }
@@ -422,7 +422,7 @@ flag schedule_list(schedule* s, cmd_h* h) {
 	
 	// If h->words->next, wrong number of arguments
 	if (h->words->next) {
-		fprintf(stderr, "schedule_list: list command shouldn't have arguments.\n");
+		fprintf(stderr, "list: command shouldn't have arguments.\n");
 		return 0;
 	}
 
@@ -446,7 +446,7 @@ flag schedule_write(schedule* s, cmd_h* h) {
 	h->next_word = h->words;
 
 	if (arg_count != 1) {
-		fprintf(stderr, "schedule_write: bad number of arguments.\n");
+		fprintf(stderr, "write: wrong number of arguments.\n");
 		return 0;
 	}
 
@@ -458,7 +458,7 @@ flag schedule_write(schedule* s, cmd_h* h) {
 
 	// Check if there was an error opening the file
 	if (!file) {
-		fprintf(stderr, "schedule_write: cannot open %s for write.\n", filename);
+		fprintf(stderr, "write: cannot open %s for write.\n", filename);
 		return 0;
 	}
 
@@ -496,7 +496,7 @@ flag schedule_load(schedule* s, cmd_h* h) {
 	h->next_word = h->words;
 
 	if (arg_count != 1) {
-		fprintf(stderr, "schedule_load: bad number of arguments.\n");
+		fprintf(stderr, "load: wrong number of arguments.\n");
 		return 0;
 	}
 
