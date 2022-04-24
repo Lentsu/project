@@ -301,7 +301,9 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 	
 	// Check that the read date data is realistic
 	if (!(new->month > 0 && new->month < 13)
-			|| !(new->day > 0 && new->day < 32) || !(new->hour < 24)) { fprintf(stderr, "add: scanned time isn't realistic.\n"); meeting_free(new);
+			|| !(new->day > 0 && new->day < 32) || !(new->hour < 24)) { 
+		fprintf(stderr, "add: scanned time isn't realistic.\n"); 
+		meeting_free(new);
 		return 0;
 	}
 	
@@ -359,6 +361,13 @@ flag schedule_del(schedule* s, cmd_h* h) {
 		|| !sscanf(day_w->word, "%" SCNu8, &del_day)
 		|| !sscanf(hour_w->word, "%" SCNu8, &del_hour)) {
 		fprintf(stderr, "delete: unscannable arguments.\n");
+		return 0;
+	}
+	
+	// Check that the read date data is realistic
+	if (!(del_mon > 0 && del_mon < 13)
+			|| !(del_day > 0 && del_day < 32) || !(del_hour < 24)) { 
+		fprintf(stderr, "delete: scanned time isn't realistic.\n"); 
 		return 0;
 	}
 
