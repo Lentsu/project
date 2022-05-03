@@ -1,5 +1,7 @@
 # A scheduling program made as a school project
 
+![Example](screenshot.png "Example")
+
 ## Description:
 
 Program manages a linked list of meetings in local memory through user provided commands in the following form:
