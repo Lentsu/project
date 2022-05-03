@@ -14,7 +14,9 @@ Where `<command-label>` is an upper case character for the command and `<args>` 
 
 ## Commands:
 
-### A <meeting-name> <month> <day> <hour>
+### A
+`A <meeting-name> <month> <day> <hour>`
+
 *Adds a meeting to the given time slot*
 
 `<meeting-name>` is a null terminated string.
@@ -25,7 +27,9 @@ Where `<command-label>` is an upper case character for the command and `<args>` 
 
 `<hour>` is an 8 bit integer value in range [0, 23].
 
-### D <month> <day> <hour>
+### D
+`D <month> <day> <hour>`
+
 *Deletes a meeting at a given time*
 
 `<month>` is an 8 bit integer value in range [1, 12].
@@ -35,17 +39,24 @@ Where `<command-label>` is an upper case character for the command and `<args>` 
 `<hour>` is an 8 bit integer value in range [0, 23].
 
 ### L
+`L`
+
 *Lists the meetings to stdout*
 
-### W <filename>
+### W
+`W <filename>`
+
 *Writes the meetings to a file*
 
 `<filename>` is a null terminated string.
 
-### O <filename>
+### O
+`O <filename>`
+
 *Loads meetings from a file*
 
 `<filename>` is a null terminated string.
 
 ### Q
+`Q`
 *Quits the program.*
