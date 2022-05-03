@@ -28,7 +28,7 @@ typedef struct _Word {
  *  Handle structure to hold command label and arguments!!!
  *
  *  \param _data is a tokenized string
- *	
+ *
  *	\param label is the label character of the command
  *
  *	\param words is a linked list of words pointing to \param _data
@@ -38,13 +38,11 @@ typedef struct _Word {
 **/
 typedef struct _CMD_Handle {
 
-	// Command data as a string 
 	char* _data;
-	// Label of the command
 	char label;
-	// Tokens in data as a linked list
+
+	// Linked word members
 	word_t* words;
-	// Next word
 	word_t* next_word;
 
 } cmd_h;
@@ -65,17 +63,24 @@ typedef unsigned char flag;
 
 
 /**
- * Structure to represent a meeting!!!
+ *  Structure to represent a meeting!!!
+ *
+ *  \param description holds the description of the meeting as a null terminated string
+ *
+ *  \param month holds the month of the meeting as an 8 bit unsigned integer value
+ *
+ *  \param day holds the day of the meeting as an 8 bit unsigned integer value
+ *
+ *  \param hour holds the hour of the meeting as an 8 bit unsigned integer value
+ *
+ *  \param next holds the next meeting object in list
+ *
 **/
 typedef struct _Meeting {
 
-	// Description of the meeting 
 	char* description;
-	// Month represented as an 8 bit unsigned integer value
 	uint8_t month;
-	// Day represented as an 8 bit unsigned integer value
 	uint8_t day;
-	// Day represented as an 8 bit unsigned integer value
 	uint8_t hour;
 
 	// Next meeting
@@ -104,6 +109,7 @@ typedef struct _Schedule {
 
 	// Meetings data as a linked list
 	meeting* meetings;
+
 	// Next meeting pointer
 	meeting* next_meeting;
 
@@ -117,7 +123,7 @@ flag schedule_add(schedule*, cmd_h*);
 flag schedule_del(schedule*, cmd_h*);
 
 // Function to print the meetings into a stream
-void schedule_print(FILE*, schedule*);
+flag schedule_print(FILE*, schedule*);
 
 // Function to list the meetings into stdout
 flag schedule_list(schedule*, cmd_h*);

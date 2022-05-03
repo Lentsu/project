@@ -26,7 +26,6 @@ int main() {
 		fgets(linebuf, 1024, stdin);
 
 		// Process the line and read into the handle
-		// 	If it work out...
 		int read_state = read_h(&handle, linebuf);
 
 		// If error state
@@ -38,7 +37,7 @@ int main() {
 			free_h(&handle);
 			continue;
 		}
-		
+
 		// Determine what to do
 		switch(handle.label) {
 
@@ -84,7 +83,6 @@ int main() {
 		// If SUCCESS flag is set, print
 		if (S)
 			printf("SUCCESS\n");
-
 	}
 
 	// Free the schedule
@@ -108,26 +106,26 @@ int read_h(cmd_h* h, const char* str) {
 	// Allocate the memory for the first argument
 	h->words = (word_t*)malloc(sizeof(word_t));
 	h->next_word = h->words;
-	
+
 	// Pointer to read into
 	char* ptr;
-	
+
 	// Set the memory to avoid accessing it uninitialized
 	memset(h->next_word, 0, sizeof(word_t));
 
 	// Tokenize the string
 	ptr = strtok(h->_data, " \n");
-	
+
 	// If the first argument is NULL
 	if (!ptr) {
 		free(h->words);
 		free(h->_data);
 		return CMD_NULL_DATA;
 	}
-	
+
 	// Read the first argument (Label)
 	h->next_word->word = ptr;
-	
+
 	// Check that it's just one character
 	if (strlen(ptr) != 1) {
 		free(h->words);
@@ -166,7 +164,7 @@ int read_h(cmd_h* h, const char* str) {
 }
 
 void free_h(cmd_h* h) {
-	
+
 	// Free the words
 	h->next_word = h->words;
 	while(h->words) {
@@ -188,11 +186,15 @@ void free_h(cmd_h* h) {
 static meeting* meeting_read(word_t* w) {
 
 	// Check that there are 4 words, no less, no more
-	if (!w || !w->next || !w->next->next || !w->next->next->next || w->next->next->next->next) {
+	if (!w || !w->next
+		|| !w->next->next
+		|| !w->next->next->next
+		|| w->next->next->next->next) {
+
 		fprintf(stderr, "add: wrong number of arguments.\n");
 		return NULL;
 	}
-	
+
 	/** words
 	 * 	w FOR DESCRIPTION
 	 *	w->next FOR MONTH
@@ -214,10 +216,10 @@ static meeting* meeting_read(word_t* w) {
 	ret->description = (char*)malloc((desc_len+1)*sizeof(char));
 	strcpy(ret->description, desc_w->word);
 
-	// Read the time using sscanf magic
-	if(!sscanf(mon_w->word, "%" SCNu8, &ret->month)
-	  || !sscanf(day_w->word, "%" SCNu8, &ret->day)
-	  || !sscanf(hour_w->word, "%" SCNu8, &ret->hour)) {
+	// Read the time using sscanf
+	if(!sscanf(mon_w->word, "%hhu", &ret->month)
+		|| !sscanf(day_w->word, "%hhu", &ret->day)
+		|| !sscanf(hour_w->word, "%hhu", &ret->hour)) {
 
 	  // If there's an error, free the newly allocated space and return NULL
 	  fprintf(stderr, "add: unscannable arguments.\n");
@@ -239,28 +241,35 @@ static void meeting_free(meeting* m) {
 
 // Compare meetings
 static flag meeting_is_later(meeting* a, meeting* b) {
+
 	// If month is bigger
 	if (a->month > b->month) {
 		return 1;
-	} else if (a->month < b->month) {
+	}
+	// If it's less
+	else if (a->month < b->month) {
 		return 0;
-	}	else {	// They are the same
+	}
+	// If they are the same
+	else {
+
 		// If day is bigger
 		if (a->day > b->day) {
 			return 1;
-		} else if (a->day < b->day) {
+		}
+		// If it's less
+		else if (a->day < b->day) {
 			return 0;
-		} else {	// They are the same
-			if (a->hour > b->hour)
-				return 1;
-			else
-				return 0;
+		}
+		// They are the same
+		else {
+			return a->hour > b->hour;
 		}
 	}
 }
 
 flag schedule_add(schedule* s, cmd_h* h) {
-	
+
 	// Point the next word one past the label (first argument)
 	h->next_word = h->words->next;
 
@@ -281,14 +290,15 @@ flag schedule_add(schedule* s, cmd_h* h) {
 }
 
 flag schedule_add_meeting(schedule* s, meeting* new) {
-	
+
 	s->next_meeting = s->meetings;
 	while(s->next_meeting->next) {
 
 		// Check that there isn't another meeting in the same time window
 		if (s->next_meeting->next->month == new->month
-				&& s->next_meeting->next->day == new->day
-				&& s->next_meeting->next->hour == new->hour) {
+			&& s->next_meeting->next->day == new->day
+			&& s->next_meeting->next->hour == new->hour) {
+
 			fprintf(stderr, "add: time (%02hhu.%02hhu at %02hhu) "
 				"already reserved.\n", new->day, new->month, new->hour);
 
@@ -300,15 +310,17 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 	}
 
 	// -> NO DUPLICATES!
-	
+
 	// Check that the read date data is realistic
 	if (!(new->month > 0 && new->month < 13)
-			|| !(new->day > 0 && new->day < 32) || !(new->hour < 24)) { 
+		|| !(new->day > 0 && new->day < 32)
+		|| !(new->hour < 24)) {
+
 		fprintf(stderr, "add: scanned time isn't realistic.\n"); 
 		meeting_free(new);
 		return 0;
 	}
-	
+
 	// Reset the next_meeting and make a temporary to hold the old value
 	meeting* old_next = s->meetings;	// Points to the null member by default
 	s->next_meeting = s->meetings->next;
@@ -318,7 +330,7 @@ flag schedule_add_meeting(schedule* s, meeting* new) {
 		old_next = s->next_meeting;
 		s->next_meeting = s->next_meeting->next;
 	}
-	
+
 	// Put the new meeting in between old_next and next_meeting
 	old_next->next = new;
 	new->next = s->next_meeting;
@@ -339,7 +351,7 @@ flag schedule_del(schedule* s, cmd_h* h) {
 		++arg_count;
 		h->next_word = h->next_word->next;
 	}
-	
+
 	// Reset next_word
 	h->next_word = h->words;
 
@@ -348,7 +360,7 @@ flag schedule_del(schedule* s, cmd_h* h) {
 		fprintf(stderr, "delete: wrong number of arguments.\n");
 		return 0;
 	}
-	
+
 	// Value members
 	word_t* mon_w = h->next_word->next;
 	word_t* day_w = h->next_word->next->next;
@@ -359,16 +371,19 @@ flag schedule_del(schedule* s, cmd_h* h) {
 	uint8_t del_hour;
 
 	// Read the values with sscanf magic
-	if (!sscanf(mon_w->word, "%" SCNu8, &del_mon)
-		|| !sscanf(day_w->word, "%" SCNu8, &del_day)
-		|| !sscanf(hour_w->word, "%" SCNu8, &del_hour)) {
+	if (!sscanf(mon_w->word, "%hhu", &del_mon)
+		|| !sscanf(day_w->word, "%hhu", &del_day)
+		|| !sscanf(hour_w->word, "%hhu", &del_hour)) {
+
 		fprintf(stderr, "delete: unscannable arguments.\n");
 		return 0;
 	}
-	
+
 	// Check that the read date data is realistic
 	if (!(del_mon > 0 && del_mon < 13)
-			|| !(del_day > 0 && del_day < 32) || !(del_hour < 24)) { 
+		|| !(del_day > 0 && del_day < 32)
+		|| !(del_hour < 24)) {
+
 		fprintf(stderr, "delete: scanned time isn't realistic.\n"); 
 		return 0;
 	}
@@ -383,15 +398,15 @@ flag schedule_del(schedule* s, cmd_h* h) {
 
 		// If time-values match
 		if (s->next_meeting->month == del_mon
-				&& s->next_meeting->day == del_day
-				&& s->next_meeting->hour == del_hour) {
+			&& s->next_meeting->day == del_day
+			&& s->next_meeting->hour == del_hour) {
 
 			// Set old_next to point to the current next
 			old_next->next = s->next_meeting->next;
-			
+
 			// Free the memory on the current meeting
 			meeting_free(s->next_meeting);
-			
+
 			// Set the delete flag
 			deleted = 1;
 			break;
@@ -401,7 +416,7 @@ flag schedule_del(schedule* s, cmd_h* h) {
 		old_next = s->next_meeting;
 		s->next_meeting = s->next_meeting->next;
 	}
-	
+
 	// Reset the next_meeting
 	s->next_meeting = s->meetings;
 
@@ -413,7 +428,13 @@ flag schedule_del(schedule* s, cmd_h* h) {
 	return deleted;
 }
 
-void schedule_print(FILE* stream, schedule* s) {
+flag schedule_print(FILE* stream, schedule* s) {
+
+	// Check for errors in stream
+	if (!stream) {
+		fprintf(stderr, "print: bad output stream.\n");
+		return 0;
+	}
 
 	// Loop through all nodes (assuming they are in order)
 	// 	(( Except the first null one ))
@@ -432,10 +453,13 @@ void schedule_print(FILE* stream, schedule* s) {
 
 	// Reset the next_meeting pointer
 	s->next_meeting = s->meetings;
+
+	// Return 1 to indicate success
+	return 1;
 }
 
 flag schedule_list(schedule* s, cmd_h* h) {
-	
+
 	// If h->words->next, wrong number of arguments
 	if (h->words->next) {
 		fprintf(stderr, "list: command shouldn't have arguments.\n");
@@ -443,13 +467,12 @@ flag schedule_list(schedule* s, cmd_h* h) {
 	}
 
 	// Print the schedule to stdout
-	schedule_print(stdout, s);
+	return schedule_print(stdout, s);
 
-	return 1;
 }
 
 flag schedule_write(schedule* s, cmd_h* h) {
-	
+
 	// Count the arguments (after label)
 	size_t arg_count = 0;
 	h->next_word = h->words->next;
@@ -497,7 +520,7 @@ flag schedule_load(schedule* s, cmd_h* h) {
 	 *  5. Add the read meeting to the schedule
 	 *  6. Repeat until EOF
 	**/
-	
+
 	// Count the arguments after label
 	size_t arg_count = 0;
 	h->next_word = h->words->next;
@@ -565,7 +588,7 @@ flag schedule_load(schedule* s, cmd_h* h) {
 		// Add the meeting to the schedule
 		schedule_add_meeting(s, new);
 	}
-	
+
 	// Close the file
 	fclose(file);
 
