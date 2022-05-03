@@ -6,7 +6,7 @@ Program manages a linked list of meetings in local memory through user provided 
 
 `<command-label> <args>\n`
 
-Where 'command-label' is an upper case character for the command and '<args>' is a null terminated string of whitespace separated arguments.
+Where `<command-label>` is an upper case character for the command and `<args>` is a null terminated string of whitespace separated arguments.
 
 ## Commands:
 
@@ -14,15 +14,20 @@ Where 'command-label' is an upper case character for the command and '<args>' is
 **Adds a meeting to the given time slot**
 
 `<meeting-name>` is a null terminated string.
+
 `<month>` is an 8 bit integer value in range [1, 12].
+
 `<day>` is an 8 bit integer value in range [1, 31].
+
 `<hour>` is an 8 bit integer value in range [0, 23].
 
 ### D <month> <day> <hour>
 **Deletes a meeting at a given time**
 
 `<month>` is an 8 bit integer value in range [1, 12].
+
 `<day>` is an 8 bit integer value in range [1, 31].
+
 `<hour>` is an 8 bit integer value in range [0, 23].
 
 ### L
